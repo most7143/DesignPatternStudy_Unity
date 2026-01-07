@@ -1,5 +1,7 @@
 # Unity Strategy Pattern 예제 (Gun System)
 
+![Image](https://github.com/user-attachments/assets/c350b71a-f44c-44d6-9be3-456c52415f85)
+
 이 프로젝트 안에는 **Unity에서 전략 패턴(Strategy Pattern)** 을 활용하여  
 총기의 발사 방식을 유연하게 교체할 수 있도록 설계한 예제를 추가했다.
 
