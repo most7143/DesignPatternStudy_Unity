@@ -1,4 +1,4 @@
-# Unity Strategy Pattern 예제 (Gun System)
+# Unity Strategy Pattern 예제 (무기 교체)
 
 ![Image](https://github.com/user-attachments/assets/c350b71a-f44c-44d6-9be3-456c52415f85)
 
@@ -155,3 +155,145 @@ public virtual void Shoot(Transform shotPoint)
 - 연속 입력 방지
 - 발사 흐름 통합 관리
 하위 클래스는 **발사 방식 구현에만 집중**하면 된다
+
+<br>
+<br>
+<br>
+<br>
+
+# Unity Observer Pattern 예제 (두더지 잡기)
+이 프로젝트 안에 Unity 환경에서 옵저버 패턴(Observer Pattern) 을
+실제 게임 로직에 자연스럽게 적용한 간단한 예제이다.
+
+몬스터의 상태 변화(사망, 도주)를 이벤트로 분리하고,
+점수 시스템이 그 변화를 독립적으로 반응하도록 구성했다.
+
+---
+
+## 예제 핵심 구조
+
+- O_Monster : 상태 변화를 알리는 Subject
+- O_Score : 점수 계산을 담당하는 Observer
+- O_SceneManager : Subject와 Observer를 연결하는 중재자
+- O_SpawnPoint : 스폰 위치 점유 상태 관리 (게임 로직)
+
+---
+
+## 1. 옵저버 패턴이란?
+
+**옵저버 패턴(Observer Pattern)** 은
+어떤 객체의 상태가 변경되었을 때,
+그 객체를 구독하고 있는 다른 객체들에게
+자동으로 알림을 전달하는 패턴이다.
+
+즉,
+
+- 상태 변화는 발생한 객체가 책임지고 알린다
+- 그 변화에 어떻게 반응할지는 관찰자의 책임이다
+
+상태를 알리는 객체는
+누가 그 알림을 받는지 알 필요가 없다.
+
+---
+
+## 2. 옵저버 패턴을 사용하면 좋은 이유
+게임에서는 하나의 이벤트가
+여러 시스템에 영향을 주는 경우가 많다.
+
+### 패턴을 사용하지 않았을 경우
+몬스터가 사망할 때마다
+점수, UI, 스폰 로직을 직접 호출한다면
+몬스터는 너무 많은 책임을 가지게 된다.
+
+```csharp
+// Monster 내부
+score.Add(2);
+ui.UpdateScore();
+sceneManager.OnMonsterDead();
+```
+이 구조의 문제점은 다음과 같다.
+- 몬스터가 다른 시스템을 직접 알고 있어야 한다
+- 시스템이 추가될 때마다 몬스터 코드가 수정된다
+- 테스트와 확장이 어려워진다
+
+### 현재 구조의 장점
+이 프로젝트에서는
+몬스터가 이벤트만 발생시키고,
+외부 시스템이 이를 구독하도록 설계했다.
+```csharp
+public event Action OnDeath;
+public event Action OnRun;
+```
+- 몬스터는 자신의 상태 변화만 책임진다
+- 점수, UI, 스폰 로직은 독립적으로 반응한다
+- 서로 강하게 의존하지 않는 구조가 된다
+
+---
+
+## 3. 오리지널 옵저버 패턴과 Unity에서의 적용
+**오리지널 옵저버 패턴**
+아래는 전통적인 옵저버 패턴 구조를
+플레이어가 피해를 받아 체력이 감소하는 상황으로 단순화한 예시다.
+```csharp
+public interface IObserver
+{
+    void OnNotified(int damage);
+}
+
+public class PlayerUI : IObserver
+{
+    public void OnNotified(int damage)
+    {
+        // 체력 UI 갱신
+    }
+}
+
+public class Player
+{
+    private List<IObserver> observers = new();
+    private int hp = 100;
+
+    public void Subscribe(IObserver observer)
+    {
+        observers.Add(observer);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        hp -= damage;
+
+        foreach (var o in observers)
+            o.OnNotified(damage);
+    }
+}
+```
+- Player : Subject (상태 변화 발생)
+- PlayerUI : Observer (변화에 반응)
+
+**유니티에서의 옵저버 패턴 (C#)**
+이 프로젝트에서는 위 구조를 Unity에 맞게 event 기반으로 단순화했다
+```csharp
+// Monster.cs
+public event Action OnDeath;
+public event Action OnRun;
+```
+```csharp
+// Score.cs
+public void OnMonsterKilled() { }
+public void OnMonsterEscaped() { }
+```
+```csharp
+//SceneManager.cs
+monster.OnDeath += () => score.OnMonsterKilled();
+monster.OnRun   += () => score.OnMonsterEscaped();
+```
+옵저버 패턴의 핵심은 **상태 변화를 발생시키는 객체와, 그 변화에 반응하는 로직을 분리**하는 것이다.<br>
+오리지널 옵저버 패턴은 인터페이스와 Notify() 구조로 이 관계를 명확히 표현한다. <br>
+Unity에서는 이를 event와 Action으로 단순화해, 개념은 유지하면서 구현 부담을 줄인다.<br>
+이 예제의 구조 역시 몬스터는 상태만 알리고, 점수 시스템은 그 알림에 반응하도록 설계되어 있다.
+
+
+
+
+
+
