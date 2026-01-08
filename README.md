@@ -162,11 +162,11 @@ public virtual void Shoot(Transform shotPoint)
 <br>
 
 # Unity Observer Pattern 예제 (두더지 잡기)
-이 프로젝트 안에 Unity 환경에서 옵저버 패턴(Observer Pattern) 을
-실제 게임 로직에 자연스럽게 적용한 간단한 예제이다.
 
-몬스터의 상태 변화(사망, 도주)를 이벤트로 분리하고,
-점수 시스템이 그 변화를 독립적으로 반응하도록 구성했다.
+![Image](https://github.com/user-attachments/assets/b0d08d0a-2139-4ade-b823-4de688a4b53b)
+
+이 프로젝트 안에 Unity 환경에서 옵저버 패턴(Observer Pattern)을 실제 게임 로직에 자연스럽게 적용한 간단한 예제이다. <br>
+몬스터의 상태 변화(사망, 도주)를 이벤트로 분리하고, 점수 시스템이 그 변화를 독립적으로 반응하도록 구성했다.
 
 ---
 
@@ -231,7 +231,9 @@ public event Action OnRun;
 ---
 
 ## 3. 오리지널 옵저버 패턴과 Unity에서의 적용
+
 **오리지널 옵저버 패턴**
+
 아래는 전통적인 옵저버 패턴 구조를
 플레이어가 피해를 받아 체력이 감소하는 상황으로 단순화한 예시다.
 ```csharp
@@ -271,7 +273,8 @@ public class Player
 - PlayerUI : Observer (변화에 반응)
 
 **유니티에서의 옵저버 패턴 (C#)**
-이 프로젝트에서는 위 구조를 Unity에 맞게 event 기반으로 단순화했다
+
+이 예제는 위 구조를 Unity에 맞게 event 기반으로 단순화했다
 ```csharp
 // Monster.cs
 public event Action OnDeath;
