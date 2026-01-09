@@ -295,7 +295,92 @@ monster.OnRun   += () => score.OnMonsterEscaped();
 Unity에서는 이를 event와 Action으로 단순화해, 개념은 유지하면서 구현 부담을 줄인다.<br>
 이 예제의 구조 역시 몬스터는 상태만 알리고, 점수 시스템은 그 알림에 반응하도록 설계되어 있다.
 
+<br> <br> <br> <br>
+# Unity Singleton Pattern 예제 (스테이지 & 점수 관리)
 
+이 프로젝트 안에는 Unity에서 싱글톤 패턴(Singleton Pattern) 을 활용하여
+씬 전환이 발생해도 게임 진행 상태를 유지할 수 있도록 구성한 예제가 포함되어 있다.
+
+스테이지 번호, 점수처럼
+여러 씬에서 공통으로 참조되지만 단 하나만 존재해야 하는 데이터를
+어떻게 관리하는지에 초점을 맞춘 구조이다.
+
+## 예제 핵심 구조
+- S_GameManager : 싱글톤으로 유지되는 전역 게임 상태 관리자
+- S_Score : 점수 데이터 관리 클래스
+- S_GameController : 씬 단위의 게임 로직 제어
+- S_HUD : UI 표시 담당
+
+## 1. 싱글톤 패턴이란?
+
+싱글톤 패턴(Singleton Pattern) 은 **프로그램 전체에서 단 하나의 인스턴스만 존재하도록 보장하는 패턴**이다.
+
+즉,
+
+어디서든 동일한 객체에 접근할 수 있고 객체가 중복 생성되는 것을 방지한다<br>
+Unity에서는 주로 씬이 바뀌어도 유지되어야 하는 시스템을 구현할 때 사용한다.
+
+이 예제에서는 GameManager가 싱글톤 역할을 담당한다.
+
+## 2. 싱글톤이 필요한 이유 (이 프로젝트 기준)
+
+이 게임은 스테이지가 바뀌어도 현재 스테이지 번호, 누적 점수를 유지해야 한다. <br>
+만약 싱글톤을 사용하지 않는다면 씬마다 점수와 스테이지를 새로 계산하거나, <br>
+데이터를 별도로 전달해야 하는 구조가 된다.
+
+## 3. 코드에서의 적용 구조
+싱글톤 GameManager 구현
+```csharp
+public class S_GameManager : MonoBehaviour
+{
+    public static S_GameManager Instance { get; private set; }
+
+    public int StageLevel { get; set; } = 1;
+    public S_Score ScoreManager { get; private set; } = new S_Score();
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+}
+```
+
+### 핵심 포인트
+- static Instance 를 통해 전역 접근 가능 
+- DontDestroyOnLoad 로 씬 전환 시에도 유지
+- 중복 생성 시 자동 제거
+
+## 4. 싱글톤을 사용하지 않았을 경우의 문제점
+
+씬마다 GameManager가 새로 생성된다면
+- 점수가 초기화된다
+- 스테이지 진행 정보가 끊긴다
+- 데이터를 전달하기 위한 코드가 늘어난다
+
+결과적으로 게임 상태 관리 로직이 분산되고 복잡해진다.
+
+## 5. 현재 구조의 장점
+### 씬이 바뀌어도 상태가 유지된다
+```csharp
+Hud.UpdateScore(S_GameManager.Instance.ScoreManager.Score);
+Hud.UpdateStage(S_GameManager.Instance.StageLevel);
+```
+어느 씬에서든 동일한 점수와 스테이지를 참조, 데이터 흐름이 단순해진다
+
+### 전역 데이터와 씬 로직의 분리
+S_GameController는 게임 플레이 흐름만 담당하고 전역 데이터는 S_GameManager에 위임한다.
+```csharp
+S_GameManager.Instance.NextStage();
+```
+전역 상태 관리와 게임 로직이 분리된 구조
 
 
 
