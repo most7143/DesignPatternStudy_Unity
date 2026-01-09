@@ -297,6 +297,7 @@ Unity에서는 이를 event와 Action으로 단순화해, 개념은 유지하면
 
 <br> <br> <br> <br>
 # Unity Singleton Pattern 예제 (스테이지 & 점수 관리)
+![Image](https://github.com/user-attachments/assets/81580d89-b897-4eea-9690-cd51e370dc4d)
 
 이 프로젝트 안에는 Unity에서 싱글톤 패턴(Singleton Pattern) 을 활용하여
 씬 전환이 발생해도 게임 진행 상태를 유지할 수 있도록 구성한 예제가 포함되어 있다.
