@@ -386,6 +386,7 @@ S_GameManager.Instance.NextStage();
 <br> <br> <br> <br>
 
 # Unity Factory Pattern 예제 (가챠 아이템 생성)
+![Image](https://github.com/user-attachments/assets/b14e230e-2502-4489-94ac-711af6f4ddc9)
 
 Unity에서 팩토리 패턴(Factory Pattern) 을 활용하여
 아이템 생성 로직을 한 곳에 모은 간단한 가챠 예제를 추가하였다.
@@ -458,7 +459,7 @@ item.Init();
 - 객체 생성과 사용 책임이 명확히 분리된다
 
 ## 정리
-이 예제는 Unity 환경에서 팩토리 패턴의 핵심 목적—객체 생성 책임 분리—를 가장 단순하게 보여주는 구조다. <br>
+이 예제는 Unity 환경에서 팩토리 패턴의 핵심 목적 **객체 생성 책임 분리** 를 가장 단순하게 보여주는 구조다. <br>
 아이템을 사용하는 쪽은 생성 방식이나 구체 타입에 의존하지 않고, 팩토리는 생성 로직만 책임진다.
 
 
