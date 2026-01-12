@@ -8,6 +8,7 @@ public class O_Monster : MonoBehaviour
     private float Health = 4;
     private float MaxHealth = 4;
 
+
     [SerializeField] private Animator animator;
     [SerializeField] private BoxCollider2D boxCollider;
     [SerializeField] private Image fillamount;
