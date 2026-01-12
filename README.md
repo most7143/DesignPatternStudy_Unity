@@ -383,6 +383,82 @@ S_GameManager.Instance.NextStage();
 ```
 전역 상태 관리와 게임 로직이 분리된 구조
 
+<br> <br> <br> <br>
 
+# Unity Factory Pattern 예제 (가챠 아이템 생성)
+
+Unity에서 팩토리 패턴(Factory Pattern) 을 활용하여
+아이템 생성 로직을 한 곳에 모은 간단한 가챠 예제를 추가하였다.
+
+아이템의 종류와 확률은 다양하지만, 아이템을 사용하는 쪽에서는 “무엇이 생성되는지”를 알 필요가 없는 구조를 목표로 한다.
+
+## 예제 핵심 구조
+- Item : 아이템의 공통 추상 클래스
+- PaperMap, Sword 등 : 아이템 구현체
+- ItemFactory : 아이템 생성 책임을 담당
+- Gacha : 아이템을 요청하고 사용하는 쪽
+
+## 1. 팩토리 패턴이란?
+팩토리 패턴(Factory Pattern)은 객체 생성을 담당하는 로직을 별도의 클래스로 분리하여, <br>
+어떤 객체를 생성할지에 대한 판단과 객체를 사용하는 로직을 분리하는 패턴이다.
+
+이 구조를 통해 사용하는 쪽은 생성 방식과 구체 타입에 의존하지 않게 된다.
+
+## 2. 코드에서의 적용 구조
+**Item (공통 인터페이스 역할)**
+```csharp
+public abstract class Item : MonoBehaviour
+{
+    protected string nameString;
+    protected string descString;
+
+    public abstract void Init();
+}
+```
+
+모든 아이템은 Item을 상속. 사용하는 쪽은 Item 타입으로만 접근한다
+
+**ItemFactory (핵심)**
+```csharp
+public class ItemFactory
+{
+    public Item Create()
+    {
+        ItemTypes type = GetItemType();
+
+        switch (type)
+        {
+            case ItemTypes.Normal:
+                return Object.Instantiate(Resources.Load<Item>("Factory/F_Sword"));
+            case ItemTypes.Rare:
+                return Object.Instantiate(Resources.Load<Item>("Factory/F_Compass"));
+            case ItemTypes.Unique:
+                return Object.Instantiate(Resources.Load<Item>("Factory/F_PaperMap"));
+            case ItemTypes.Legendary:
+                return Object.Instantiate(Resources.Load<Item>("Factory/F_Key"));
+        }
+
+        return null;
+    }
+}
+```
+아이템 생성 판단과 생성 로직이 팩토리에 집중해 아이템 추가·확률 변경 시 수정 지점이 명확하다
+
+**Gacha (사용하는 쪽)**
+```csharp
+Item item = factory.Create();
+item.Init();
+```
+가챠 시스템은 구체적인 아이템 타입을 알지 못한다. “아이템을 하나 생성해 달라”는 요청만 한다
+
+## 3. 이 구조의 장점
+
+- 아이템 생성 로직이 한 곳에 모인다.
+- 새로운 아이템 추가 시 기존 사용 코드 수정이 필요 없다
+- 객체 생성과 사용 책임이 명확히 분리된다
+
+## 정리
+이 예제는 Unity 환경에서 팩토리 패턴의 핵심 목적—객체 생성 책임 분리—를 가장 단순하게 보여주는 구조다. <br>
+아이템을 사용하는 쪽은 생성 방식이나 구체 타입에 의존하지 않고, 팩토리는 생성 로직만 책임진다.
 
 
