@@ -463,3 +463,184 @@ item.Init();
 아이템을 사용하는 쪽은 생성 방식이나 구체 타입에 의존하지 않고, 팩토리는 생성 로직만 책임진다.
 
 
+<br><br><br><br>
+# Unity Command Pattern 예제 (캐릭터 이동&점프, 리플레이)
+
+이 프로젝트 안에는 Unity에서 커맨드 패턴(Command Pattern) 을 활용하여
+플레이어 입력을 객체로 분리하고, 입력 기록과 리플레이까지 확장한 예제가 포함되어 있다.
+
+이동, 점프 같은 입력을 즉시 실행하지 않고
+명령(Command) 객체로 캡슐화하여 실행·저장·재실행이 가능한 구조를 목표로 한다.
+
+## 예제 핵심 구조
+
+- ICommand : 모든 명령의 공통 인터페이스
+- CommandMove, CommandJump : 실제 행동을 수행하는 명령 객체
+- CommandInvoker : 명령을 실행하는 호출자
+- Recorder : 실행된 명령과 시간을 기록
+- ReplayController : 기록된 명령을 다시 실행
+- Character : 실제 행동의 수신자(Receiver)
+
+## 1. 커맨드 패턴이란?
+
+커맨드 패턴(Command Pattern)은 요청(행동)을 객체로 캡슐화하여, 요청을 보내는 쪽과 실제 동작을 수행하는 쪽을 분리하는 패턴이다.
+
+즉,
+
+무엇을 할지(Command) / 실행할지(Invoker) / 실제로 어떻게 동작하는지(Receiver) 를 분리한다.
+
+이 프로젝트에서는 플레이어 입력(이동, 점프) 이 커맨드에 해당한다.
+
+## 2. 패턴을 사용하지 않았을 경우
+
+일반적인 입력 처리 방식에서는 입력 → 캐릭터 동작이 직접 연결된다.
+
+```csharp
+if (Input.GetKey(KeyCode.A))
+{
+    character.Move(Vector2.left);
+}
+
+if (Input.GetKeyDown(KeyCode.Space))
+{
+    character.Jump();
+}
+```
+
+이 방식의 문제점은 다음과 같다.
+- 입력과 캐릭터 로직이 강하게 결합된다
+- 입력을 저장하거나 되돌리기 어렵다
+- 리플레이, AI 입력, 네트워크 입력으로 확장하기 까다롭다
+  
+“입력 그 자체”를 하나의 데이터로 다룰 수 없다
+
+## 3. 커맨드 패턴 적용 구조
+```csharp
+ICommand (명령의 공통 인터페이스)
+public interface ICommand
+{
+    void Execute();
+}
+```
+모든 입력은 “실행 가능한 하나의 명령” 으로 정의된다.
+```csharp
+CommandMove / CommandJump (구체 명령)
+
+public class CommandMove : ICommand
+{
+    private Character character;
+    private Vector2 direction;
+
+    public CommandMove(Character character, Vector2 dir)
+    {
+        this.character = character;
+        direction = dir;
+    }
+
+    public void Execute()
+    {
+        character.Move(direction);
+    }
+}
+
+public class CommandJump : ICommand
+{
+    private Character character;
+
+    public CommandJump(Character character)
+    {
+        this.character = character;
+    }
+
+    public void Execute()
+    {
+        character.Jump();
+    }
+}
+```
+
+입력은 Command 객체 생성으로 변환된다. 명령은 자신이 무엇을 실행할지만 알고 있다<br>
+실제 동작은 Character(Receiver)에게 위임된다
+```csharp
+CommandInvoker (호출자)
+
+public class CommandInvoker : MonoBehaviour
+{
+    public event Action<ICommand> OnExecuted;
+
+    public void Execute(ICommand command)
+    {
+        command.Execute();
+        OnExecuted?.Invoke(command);
+    }
+}
+```
+Invoker는 명령을 실행만 할 뿐 그 명령이 무엇을 의미하는지는 알 필요가 없다<br>
+또한 실행된 명령을 외부에 이벤트로 알린다. → 이 지점이 Recorder와 연결된다.
+## 4. 입력 기록 (Recorder)
+이 예제의 핵심은 커맨드 패턴을 입력 리플레이로 확장한 부분이다.
+```csharp
+public struct CommandRecord
+{
+    public float time;
+    public ICommand command;
+}
+
+invoker.OnExecuted += Record;
+```
+실행된 명령과 그 시점의 경과 시간(Time.time 기준)을 함께 저장한다.
+```csharp
+시작 시 캐릭터 스냅샷 저장
+public struct CharacterSnapshot
+{
+    public Vector3 position;
+    public Quaternion rotation;
+}
+```
+
+리플레이 시 항상 동일한 상태에서 재생되도록 위치·회전 스냅샷을 함께 보관한다.
+
+## 5. 리플레이 시스템 (ReplayController)
+```csharp
+private IEnumerator ReplayRoutine()
+{
+    recorder.ResetCharacterPos();
+
+    float startTime = Time.time;
+    int index = 0;
+
+    while (index < records.Count)
+    {
+        if (Time.time - startTime >= records[index].time)
+        {
+            invoker.Execute(records[index].command);
+            index++;
+        }
+        yield return null;
+    }
+}
+```
+기록된 시간에 맞춰 동일한 명령 객체를 다시 실행한다. <br>
+입력 코드, 캐릭터 코드 수정 없이 명령만 재실행하는 구조가 완성된다.
+
+## 6. 이 구조의 장점
+### 1. 입력과 동작이 분리된다
+입력은 Command 생성<br>
+실행은 Invoker<br>
+실제 동작은 Character<br>
+
+각각의 책임이 명확하다.
+
+### 2. 리플레이 / AI / 네트워크 확장에 유리
+Recorder → 리플레이<br>
+AI → Command 생성<br>
+네트워크 → Command 전송
+
+모두 같은 구조를 사용할 수 있다.
+
+### 3. 실행 흐름을 데이터로 다룰 수 있다
+입력은 더 이상 “순간 이벤트”가 아니라 저장·재생 가능한 데이터가 된다.
+
+
+
+
