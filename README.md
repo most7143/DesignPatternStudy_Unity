@@ -465,6 +465,7 @@ item.Init();
 
 <br><br><br><br>
 # Unity Command Pattern 예제 (캐릭터 이동&점프, 리플레이)
+![Image](https://github.com/user-attachments/assets/9ceb90db-55b4-4aae-af3c-365ab088b2c2)
 
 이 프로젝트 안에는 Unity에서 커맨드 패턴(Command Pattern) 을 활용하여
 플레이어 입력을 객체로 분리하고, 입력 기록과 리플레이까지 확장한 예제가 포함되어 있다.
